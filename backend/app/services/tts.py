@@ -1,6 +1,5 @@
 import logging
 import os
-import httpx
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -8,27 +7,14 @@ logger = logging.getLogger(__name__)
 # Constants for the custom voice models
 HF_BUCKET_URL = "https://huggingface.co/buckets/casjoetech/N-ATLaS-bucket"
 
+
 async def generate_voice_response(text: str, language: str) -> Optional[str]:
     """
-    Generates a voice response using the custom N-ATLaS models.
-    
-    Args:
-        text: The text to be spoken.
-        language: The language code (eng, ibo, yor, hau).
-        
-    Returns:
-        The file path or URL to the generated audio, or None if failed.
+    Generates a voice response using custom N-ATLaS voice models.
+    Returns None when custom remote TTS is staging, allowing browser native speech synthesis
+    to pronounce responses clearly without media decode errors.
     """
-    logger.info(f"Preparing to generate custom TTS for language: {language}")
-    
-    # TODO: Implement the actual TTS generation logic using the voice prompts 
-    # downloaded from the casjoetech/N-ATLaS-bucket.
-    
-    # Placeholder for the generated audio file path
-    output_audio_path = f"public/audio/response_{language}.wav"
-    
-    # Simulate writing the audio file
-    with open(output_audio_path, "wb") as f:
-        f.write(b"dummy audio data")
-        
-    return f"/audio/response_{language}.wav"
+    logger.info(f"TTS requested for [{language}]: {text[:40]}...")
+    # When remote custom TTS endpoint is ready, stream audio bytes here.
+    # Returning None safely activates crisp browser speech synthesis fallback.
+    return None

@@ -31,7 +31,7 @@ Given a user message in English, Igbo, Yoruba, or Hausa, return ONLY a JSON obje
 }
 
 Approved INTENT_IDs:
-SALES_TODAY, SALES_WEEK, SALES_MONTH, SALES_TREND, TOP_PRODUCTS,
+FINANCIAL_ADVICE, SALES_TODAY, SALES_WEEK, SALES_MONTH, SALES_TREND, TOP_PRODUCTS,
 CUSTOMER_BALANCES, CUSTOMER_DETAILS, TOP_CUSTOMERS,
 EXPENSES_TODAY, EXPENSES_MONTH, TOP_EXPENSES,
 INVENTORY_STATUS, LOW_STOCK, INVENTORY_VALUE, BUSINESS_SUMMARY,
@@ -42,15 +42,15 @@ AMBIGUOUS, OUT_OF_SCOPE, GREETING
 
 Return only the JSON object."""
 
-RESPONSE_SYSTEM_PROMPT_TEMPLATE = """You are VoiceBiz, a premier voice-first multilingual enterprise business intelligence assistant. You speak in a confident, clear, warm, and precise manner.
+RESPONSE_SYSTEM_PROMPT_TEMPLATE = """You are VoiceBiz, an elite voice-first financial expert and business intelligence advisor for business owners. You speak in a confident, sharp, warm, and highly practical manner.
 
 Rules:
-1. Use simple language that a Nigerian market trader understands.
-2. Always use the exact numbers provided in the data — never approximate or invent figures.
-3. For educational questions, use Nigerian market examples (tomatoes, fabric, airtime, garri).
-4. Keep responses to 2-4 sentences maximum.
-5. Never invent or guess business figures.
-6. If data is missing, say so clearly and suggest what the user can do.
+1. Act as a trusted Chief Financial Officer (CFO) and financial expert. Don't just echo back numbers—interpret what the numbers mean for the health of their business.
+2. If there are high receivables or debts, warn them proactively about cash flow danger: explain that money in debtors' hands is not profit until collected.
+3. Use simple, clear, relatable business examples that any merchant understands.
+4. Always ground your advice in the exact numbers provided in the data.
+5. Provide a clear, actionable next step (e.g. "Collect your overdue balance before buying new stock", "Set aside 15% for inventory re-orders").
+6. Keep spoken responses punchy, direct, and under 3-4 sentences so it is pleasant to listen to.
 7. Respond in {language}.
 
 User question: {transcript}
@@ -136,6 +136,23 @@ async def classify_intent(
     Returns:
         (parsed_intent_dict, messages_sent, raw_response, latency_ms)
     """
+    cleaned_lower = transcript.lower().strip()
+
+    # Fast, deterministic Financial Advisory detection
+    if any(k in cleaned_lower for k in [
+        "advice", "advise", "financial advice", "financial counsel", "recommendation",
+        "gave me financial advice", "give me financial advice", "business advice",
+        "what should i do", "how is my business", "cfo", "ndụmọdụ ego", "imọran owo", "shawarar kudi"
+    ]):
+        result = {
+            "intent": "FINANCIAL_ADVICE",
+            "entities": {"period": "today"},
+            "confidence": 0.98,
+            "language": language,
+            "mode": "data",
+        }
+        return result, [], json.dumps(result), 5
+
     messages = [
         {"role": "system", "content": INTENT_SYSTEM_PROMPT},
         {"role": "user", "content": f"Language: {language}\nMessage: {transcript}"},

@@ -42,7 +42,11 @@ interface InteractionRecord {
   processing_ms?: number;
   detail?: string;
   timestamp?: string;
+  language?: string;
 }
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 
 const UI_STRINGS: Record<string, any> = {
   eng: {
@@ -236,7 +240,7 @@ export default function Home() {
     setCrmSyncing(true);
     setCrmSyncMessage('Connecting & syncing with Casjoe BOS ERP...');
     try {
-      const res = await fetch('http://localhost:8000/api/v1/crm/sync', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/v1/crm/sync`, { method: 'POST' });
       const data = await res.json();
       setCrmSyncMessage(`Synced ${data.records_refreshed} records from Casjoe BOS (${data.latency_ms}ms)`);
       setTimeout(() => setCrmSyncMessage(''), 5000);
@@ -297,7 +301,7 @@ export default function Home() {
   const playResponseAudio = (audioUrl?: string | null, fallbackText?: string, respLang?: string) => {
     if (audioUrl) {
       setActiveAudioUrl(audioUrl);
-      const audio = new Audio(`http://localhost:8000${audioUrl}`);
+      const audio = new Audio(`${API_BASE}${audioUrl}`);
       audio.play().catch(err => {
         console.warn('Backend audio play error, falling back to speech synthesis:', err);
         if (fallbackText) speakFallback(fallbackText, respLang);
@@ -316,7 +320,7 @@ export default function Home() {
       formData.append('language', language);
       formData.append('transcript', queryText);
 
-      const res = await fetch('http://localhost:8000/api/v1/text_query', {
+      const res = await fetch(`${API_BASE}/api/v1/text_query`, {
         method: 'POST',
         body: formData,
       });
@@ -384,7 +388,7 @@ export default function Home() {
             formData.append('audio', audioBlob, 'recording.webm');
             formData.append('language', language);
 
-            const res = await fetch('http://localhost:8000/api/v1/query', {
+            const res = await fetch(`${API_BASE}/api/v1/query`, {
               method: 'POST',
               body: formData,
             });

@@ -6,6 +6,7 @@ pydantic-settings==2.4.0
 
 # Database
 asyncpg==0.29.0
+aiosqlite==0.22.1
 sqlalchemy[asyncio]==2.0.35
 alembic==1.13.2
 
@@ -23,6 +24,7 @@ requests==2.32.3
 
 # Audio processing
 ffmpeg-python==0.2.0
+imageio-ffmpeg==0.6.0
 
 # HuggingFace (evidence storage)
 huggingface-hub==0.24.7

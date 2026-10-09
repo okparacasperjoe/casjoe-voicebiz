@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mic, BarChart3, Settings as SettingsIcon, ShieldCheck, ChevronRight, Play } from 'lucide-react';
+import { Mic, BarChart3, Settings as SettingsIcon, ShieldCheck, ChevronRight, Play, Square } from 'lucide-react';
 
 const UI_STRINGS: Record<string, any> = {
   eng: {
@@ -131,6 +131,8 @@ export default function Home() {
   const t = UI_STRINGS[language] || UI_STRINGS['eng'];
 
   const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<any>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -161,7 +163,7 @@ export default function Home() {
       if (transcript.includes('casjoe') || transcript.includes('hey casjoe') || transcript.includes('hey siri')) {
         let query = transcript.replace(/.*(hey casjoe|casjoe|hey siri)/, '').trim();
         if (!query) query = "What were my sales today?";
-        handleSimulateRecording(query);
+        handleTextQuery(query);
       }
     };
 
@@ -183,15 +185,12 @@ export default function Home() {
     }
   };
 
-  const handleSimulateRecording = async (transcriptText?: string | any) => {
-    const textToProcess = (typeof transcriptText === 'string' && transcriptText) ? transcriptText : 'What were my sales today?';
-    
+  const handleTextQuery = async (transcriptText: string) => {
     setLoading(true);
-    setIsRecording(true);
     try {
       const mockFormData = new FormData();
       mockFormData.append('language', language);
-      mockFormData.append('transcript', textToProcess);
+      mockFormData.append('transcript', transcriptText);
       
       const res = await fetch('http://localhost:8000/api/v1/text_query', {
         method: 'POST',
@@ -199,7 +198,7 @@ export default function Home() {
       });
       
       const data = await res.json();
-      const responseWithQuery = { ...data, _userQuery: textToProcess };
+      const responseWithQuery = { ...data, _userQuery: transcriptText };
       setResponses(prev => [responseWithQuery, ...prev]);
 
       if (readAloud) {
@@ -217,7 +216,71 @@ export default function Home() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMicClick = async () => {
+    if (isRecording) {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+      }
       setIsRecording(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunksRef.current.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          stream.getTracks().forEach(track => track.stop());
+          
+          setLoading(true);
+          try {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.webm');
+            formData.append('language', language);
+            
+            const res = await fetch('http://localhost:8000/api/v1/query', {
+              method: 'POST',
+              body: formData,
+            });
+            
+            const data = await res.json();
+            const responseWithQuery = { ...data, _userQuery: data.transcript || 'Audio message' };
+            setResponses(prev => [responseWithQuery, ...prev]);
+
+            if (readAloud) {
+              if (data.audio_url) {
+                const audio = new Audio(`http://localhost:8000${data.audio_url}`);
+                audio.play().catch(e => {
+                  console.error('Audio playback failed:', e);
+                  if (data.response_text) speakResponse(data.response_text);
+                });
+              } else if (data.response_text) {
+                speakResponse(data.response_text);
+              }
+            }
+          } catch (error) {
+            console.error(error);
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+      } catch (err) {
+        console.error("Error accessing microphone:", err);
+        alert("Microphone access is required to use VoiceBiz.");
+      }
     }
   };
 
@@ -288,12 +351,12 @@ export default function Home() {
       {/* Voice Action Button */}
       <div className="absolute bottom-24 w-full p-6 bg-gradient-to-t from-gray-50 via-gray-50 to-transparent flex justify-center pb-8 pointer-events-none">
         <button 
-          onClick={handleSimulateRecording}
+          onClick={handleMicClick}
           className={`w-16 h-16 rounded-full flex items-center justify-center shadow-xl transition-all transform active:scale-95 pointer-events-auto ${
             isRecording ? 'bg-red-500 animate-pulse ring-4 ring-red-200' : 'bg-green-600 hover:bg-green-700 ring-4 ring-green-100'
           }`}
         >
-          <Mic size={28} className="text-white" />
+          {isRecording ? <Square size={24} className="text-white fill-current" /> : <Mic size={28} className="text-white" />}
         </button>
       </div>
     </div>

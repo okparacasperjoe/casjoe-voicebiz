@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # ASR
     AUDIO_UPLOAD_DIR: str = "./uploads/audio"
-    WHISPER_MODEL_SIZE: str = "medium"
+    WHISPER_MODEL_SIZE: str = "base"
     WHISPER_DEVICE: str = "cpu"
     WHISPER_COMPUTE_TYPE: str = "int8"
     MAX_AUDIO_DURATION_SECONDS: int = 30

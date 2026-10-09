@@ -973,7 +973,7 @@ export default function Home() {
                 {/* Audio playback button */}
                 <div className="mt-3 flex items-center justify-between pt-2">
                   <button
-                    onClick={() => playResponseAudio(item.audio_url, item.response_text)}
+                    onClick={() => playResponseAudio(item.audio_url, item.response_text, item.language)}
                     className="flex items-center space-x-1.5 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-3 py-1 rounded-lg border border-emerald-500/20 transition cursor-pointer"
                   >
                     <Play size={12} className="fill-current" />

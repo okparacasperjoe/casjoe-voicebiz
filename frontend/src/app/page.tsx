@@ -274,27 +274,37 @@ export default function Home() {
     };
   }, [isRecording]);
 
-  const speakFallback = (text: string) => {
+  const speakFallback = (text: string, respLang?: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
+      utterance.rate = 0.95;
       utterance.pitch = 1.0;
+      const targetLang = respLang || language;
+      if (targetLang === 'ibo') {
+        utterance.lang = 'ig-NG';
+      } else if (targetLang === 'yor') {
+        utterance.lang = 'yo-NG';
+      } else if (targetLang === 'hau') {
+        utterance.lang = 'ha-NG';
+      } else {
+        utterance.lang = 'en-NG';
+      }
       window.speechSynthesis.speak(utterance);
     }
   };
 
-  const playResponseAudio = (audioUrl?: string | null, fallbackText?: string) => {
+  const playResponseAudio = (audioUrl?: string | null, fallbackText?: string, respLang?: string) => {
     if (audioUrl) {
       setActiveAudioUrl(audioUrl);
       const audio = new Audio(`http://localhost:8000${audioUrl}`);
       audio.play().catch(err => {
         console.warn('Backend audio play error, falling back to speech synthesis:', err);
-        if (fallbackText) speakFallback(fallbackText);
+        if (fallbackText) speakFallback(fallbackText, respLang);
       });
       audio.onended = () => setActiveAudioUrl(null);
     } else if (fallbackText) {
-      speakFallback(fallbackText);
+      speakFallback(fallbackText, respLang);
     }
   };
 
@@ -312,6 +322,10 @@ export default function Home() {
       });
 
       const data = await res.json();
+      if (data.language && data.language !== language) {
+        setLanguage(data.language);
+      }
+
       const newRecord: InteractionRecord = {
         ...data,
         _userQuery: queryText,
@@ -321,7 +335,7 @@ export default function Home() {
       setResponses(prev => [newRecord, ...prev]);
 
       if (readAloud) {
-        playResponseAudio(data.audio_url, data.response_text);
+        playResponseAudio(data.audio_url, data.response_text, data.language);
       }
     } catch (err: any) {
       console.error(err);
@@ -376,16 +390,20 @@ export default function Home() {
             });
 
             const data = await res.json();
+            if (data.language && data.language !== language) {
+              setLanguage(data.language);
+            }
+
             const record: InteractionRecord = {
               ...data,
-              _userQuery: data.transcript || "Spoken Audio Command",
+              _userQuery: data.transcript || (language === 'ibo' ? "Iwu Olu nke Asụsụ Igbo" : "Spoken Audio Command"),
               timestamp: now,
             };
 
             setResponses(prev => [record, ...prev]);
 
             if (readAloud) {
-              playResponseAudio(data.audio_url, data.response_text);
+              playResponseAudio(data.audio_url, data.response_text, data.language);
             }
           } catch (err: any) {
             console.error('Audio processing request failed:', err);
@@ -439,6 +457,28 @@ export default function Home() {
           <span className="hidden sm:inline-block">|</span>
           <span className="hidden sm:inline-block">ASR: <strong className="text-slate-200">Whisper-Int8</strong></span>
         </div>
+      </div>
+
+      {/* Prominent Language Switcher */}
+      <div className="flex items-center justify-center flex-wrap gap-2 mb-4 z-20 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 shadow-lg">
+        {[
+          { code: 'eng', name: 'English (Standard)' },
+          { code: 'ibo', name: 'Asụsụ Igbo (Native)' },
+          { code: 'yor', name: 'Èdè Yorùbá (Native)' },
+          { code: 'hau', name: 'Harshen Hausa (Native)' },
+        ].map((item) => (
+          <button
+            key={item.code}
+            onClick={() => setLanguage(item.code)}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              language === item.code
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20 ring-1 ring-emerald-400/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            {item.name}
+          </button>
+        ))}
       </div>
 
       {/* Neural Voice Orb & Live Wave Visualizer */}

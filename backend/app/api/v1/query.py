@@ -84,13 +84,14 @@ async def voice_query(
         logger.error(f"ASR failed [{interaction_id}]: {e}")
         await _save_interaction(db, interaction_id, current_user, language,
                                 str(wav_path), error_code=error_code)
+        fallback_msg = _get_fallback_speech_message(language, no_speech=False)
         return VoiceQueryResponse(
             interaction_id=interaction_id,
             transcript="",
             intent="AMBIGUOUS",
             intent_mode="ambiguous",
             intent_confidence=0.0,
-            response_text="I didn't catch that clearly. Could you try again in a quieter place?",
+            response_text=fallback_msg,
             language=language,
             total_latency_ms=int((time.perf_counter() - pipeline_start) * 1000),
             task_success=False,
@@ -99,18 +100,22 @@ async def voice_query(
 
     transcript = asr_result["transcript"]
     if not transcript:
+        fallback_msg = _get_fallback_speech_message(language, no_speech=True)
         return VoiceQueryResponse(
             interaction_id=interaction_id,
             transcript="",
             intent="AMBIGUOUS",
             intent_mode="ambiguous",
             intent_confidence=0.0,
-            response_text="I didn't catch any speech. Please try again.",
+            response_text=fallback_msg,
             language=language,
             total_latency_ms=int((time.perf_counter() - pipeline_start) * 1000),
             task_success=False,
             error_code="E1",
         )
+
+    # Automatically adapt language to native dialect if recognized in speech
+    language = detect_language_from_text(transcript, language)
 
     # ── Step 3: N-ATLAS intent classification ─────────────────────────────────
     try:
@@ -153,11 +158,7 @@ async def voice_query(
             intent=intent,
             intent_mode="ambiguous",
             intent_confidence=confidence,
-            response_text=(
-                "I can only help with questions about your business — "
-                "your sales, expenses, customers, or financial literacy. "
-                "What would you like to know?"
-            ),
+            response_text=_get_out_of_scope_message(language),
             language=language,
             total_latency_ms=int((time.perf_counter() - pipeline_start) * 1000),
             task_success=True,
@@ -264,6 +265,9 @@ async def text_query(
     error_code = None
     task_success = False
 
+    # Automatically detect native language if transcript uses regional phrasing
+    language = detect_language_from_text(transcript, language)
+
     # ── Step 3: N-ATLAS intent classification ─────────────────────────────────
     try:
         intent_result, intent_req, intent_raw, intent_ms = await classify_intent(
@@ -305,11 +309,7 @@ async def text_query(
             intent=intent,
             intent_mode="ambiguous",
             intent_confidence=confidence,
-            response_text=(
-                "I can only help with questions about your business — "
-                "your sales, expenses, customers, or financial literacy. "
-                "What would you like to know?"
-            ),
+            response_text=_get_out_of_scope_message(language),
             language=language,
             total_latency_ms=int((time.perf_counter() - pipeline_start) * 1000),
             task_success=True,
@@ -343,7 +343,14 @@ async def text_query(
     except Exception as e:
         error_code = "E4"
         logger.error(f"Response formatting failed [{interaction_id}]: {e}")
-        response_text = f"I found information but had trouble explaining it. Result: {business_data}"
+        fallback_msgs = {
+            "eng": "I found information but had trouble explaining it. Result:",
+            "ibo": "Ahụrụ m ozi mana enwere m nsogbu ịkọwa ya. Nsonaazụ:",
+            "yor": "Mo ri alaye sugbon mo ni isoro lati se alaye re. Esi:",
+            "hau": "Na sami bayani amma na sami matsala bayyana shi. Sakamako:"
+        }
+        msg = fallback_msgs.get(language, fallback_msgs["eng"])
+        response_text = f"{msg} {business_data}"
         resp_req, resp_ms = [], 0
 
     # ── Step 5.5: Custom Voice Generation (N-ATLaS TTS) ───────────────────────
@@ -393,6 +400,30 @@ async def text_query(
     )
 
 
+def _get_fallback_speech_message(language: str, no_speech: bool = False) -> str:
+    """Return speech recognition fallback messages in the user's native language."""
+    messages = {
+        "ibo": {
+            "unclear": "Anụghị m ihe ị kwuru nke ọma. Biko nwaa ọzọ n'ebe dị nwayọ ma kwuo ya ọzọ.",
+            "no_speech": "Anụghị m olu ọ bụla. Biko pịa bọtịnụ ma kwuo okwu ọzọ."
+        },
+        "yor": {
+            "unclear": "Mi ò gbọ́ ohun tí o sọ dáadáa. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i níbi tí kò sí ariwo.",
+            "no_speech": "Mi ò gbọ́ ohùn kankan. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i."
+        },
+        "hau": {
+            "unclear": "Ban ji abin da kuka fada da kyau ba. Da fatan za a sake gwadawa a wurin da ba hayaniya.",
+            "no_speech": "Ban ji wata magana ba. Da fatan za a sake gwadawa."
+        },
+        "eng": {
+            "unclear": "I didn't catch that clearly. Could you try again in a quieter place?",
+            "no_speech": "I didn't catch any speech. Please try again."
+        }
+    }
+    lang_set = messages.get(language, messages["eng"])
+    return lang_set["no_speech"] if no_speech else lang_set["unclear"]
+
+
 def _get_clarification_prompt(transcript: str, language: str) -> str:
     """
     Generate a clarification prompt for ambiguous queries in the requested language.
@@ -421,6 +452,75 @@ def _get_clarification_prompt(transcript: str, language: str) -> str:
     
     lang_prompts = prompts.get(language, prompts["eng"])
     return lang_prompts["profit"] if is_profit_q else lang_prompts["general"]
+
+
+def detect_language_from_text(transcript: str, current_language: str) -> str:
+    """
+    Auto-detect whether transcript contains distinctive Igbo, Yoruba, or Hausa markers.
+    If detected, prioritize that native language so responses and speech match.
+    """
+    if not transcript:
+        return current_language
+
+    text = transcript.lower().strip()
+    words = set(text.replace("?", " ").replace("!", " ").replace(".", " ").replace(",", " ").split())
+
+    # Igbo markers
+    igbo_markers = {
+        "ego", "ole", "kedu", "ahia", "ahịa", "rere", "anyi", "anyị",
+        "taa", "ugwo", "ụgwọ", "onye", "ndị", "ndi", "uru", "mmefu",
+        "ndụmọdụ", "ndumodu", "gịnị", "gini", "bụ", "bu", "biko",
+        "nwetara", "azụmahịa", "azumahia", "ngwaahịa", "ngwaahia",
+        "dalu", "dalụ", "ụtụtụ", "ututu", "ọma", "oma"
+    }
+
+    # Yoruba markers
+    yoruba_markers = {
+        "bawo", "elo", "kini", "owo", "ere", "gbese", "inawọ", "inawo",
+        "onibara", "ọjọ", "ojo", "loni", "imoran", "imọran", "tani", "se"
+    }
+
+    # Hausa markers
+    hausa_markers = {
+        "nawa", "yaya", "riba", "bashi", "sayar", "kudi", "kuɗi", "yau",
+        "kasuwanci", "shawara", "kudin", "menene", "wanene", "sannu"
+    }
+
+    if any(m in words for m in igbo_markers) or any(p in text for p in ["ego ole", "onye ji", "ndị ji", "ndi ji", "ahia taa", "ahịa taa", "ndụmọdụ", "ndumodu"]):
+        return "ibo"
+    if any(m in words for m in yoruba_markers) or any(p in text for p in ["elo ni", "tani o", "kini ere", "imoran owo"]):
+        return "yor"
+    if any(m in words for m in hausa_markers) or any(p in text for p in ["nawa na", "kudin shiga", "shawarar kudi"]):
+        return "hau"
+
+    return current_language
+
+
+def _get_out_of_scope_message(language: str) -> str:
+    """Return an out-of-scope response strictly in the target language."""
+    messages = {
+        "ibo": (
+            "Enwere m ike inyere gị aka naanị maka ajụjụ gbasara azụmahịa gị — "
+            "ahịa gị, ego mmefu, ndị ji gị ụgwọ, ma ọ bụ ndụmọdụ ego azụmahịa. "
+            "Kedu ihe ị ga-achọ ịma?"
+        ),
+        "yor": (
+            "Mo le ran ọ lọwọ pẹlu awọn ibeere nipa iṣowo rẹ nikan — "
+            "awọn tita rẹ, inawo, awọn onibara ti o jẹ ọ ni gbese, tabi imọran owo. "
+            "Kini iwọ yoo fẹ lati mọ?"
+        ),
+        "hau": (
+            "Zan iya taimaka muku ne kawai da tambayoyi game da kasuwancin ku — "
+            "tallace-tallacen ku, kashe kuɗi, abokan cinikin ku, ko shawarar kudi. "
+            "Menene kuke so ku sani?"
+        ),
+        "eng": (
+            "I can only help with questions about your business — "
+            "your sales, expenses, customers, or financial literacy. "
+            "What would you like to know?"
+        ),
+    }
+    return messages.get(language, messages["eng"])
 
 
 def _extract_jwt_from_user(user: TokenPayload) -> str:

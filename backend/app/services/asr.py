@@ -15,9 +15,11 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 # Language hint mapping: UI code → Whisper language code
+# Note: Whisper tokenizer does not have a separate 'ig' token.
+# Setting 'ibo' to None lets Whisper auto-transcribe without throwing ValueError.
 LANGUAGE_MAP = {
     "eng": "en",
-    "ibo": "ig",
+    "ibo": None,
     "yor": "yo",
     "hau": "ha",
 }
@@ -62,6 +64,11 @@ def transcribe_audio(audio_path: str, language_hint: Optional[str] = None) -> di
     if language_hint and language_hint in LANGUAGE_MAP:
         whisper_lang = LANGUAGE_MAP[language_hint]
 
+    SILENCE_HALLUCINATIONS = {
+        "thanks for watching", "thanks for watching!", "thank you.", "thank you",
+        "thank you very much.", "please subscribe", "subtitles by", "bye.", "bye"
+    }
+
     try:
         segments, info = model.transcribe(
             audio_path,
@@ -73,18 +80,43 @@ def transcribe_audio(audio_path: str, language_hint: Optional[str] = None) -> di
             vad_parameters={"min_silence_duration_ms": 500},
         )
         transcript = " ".join([s.text for s in segments]).strip()
+        detected_lang = info.language if info else "en"
+        detected_prob = round(info.language_probability, 3) if info else 0.0
+        duration = round(info.duration, 2) if info else 0.0
+    except (ValueError, Exception) as e:
+        logger.warning(f"VAD transcribe notice ({e}) — retrying without vad_filter")
+        try:
+            segments, info = model.transcribe(
+                audio_path,
+                language=whisper_lang,
+                beam_size=5,
+                best_of=5,
+                temperature=0.0,
+                vad_filter=False,
+            )
+            transcript = " ".join([s.text for s in segments]).strip()
+            detected_lang = info.language if info else "en"
+            detected_prob = round(info.language_probability, 3) if info else 0.0
+            duration = round(info.duration, 2) if info else 0.0
+        except Exception as e2:
+            logger.error(f"Whisper transcription failed completely: {e2}")
+            transcript = ""
+            detected_lang = "en"
+            detected_prob = 0.0
+            duration = 0.0
 
-    except Exception as e:
-        logger.error(f"Whisper transcription failed: {e}")
-        raise
+    # Filter out common silence hallucinations
+    if transcript.lower().strip(" .!?,") in SILENCE_HALLUCINATIONS:
+        logger.info(f"Filtered silence hallucination: '{transcript}'")
+        transcript = ""
 
     processing_ms = int((time.perf_counter() - start) * 1000)
 
     return {
         "transcript": transcript,
-        "detected_language": info.language,
-        "detected_language_probability": round(info.language_probability, 3),
-        "duration_seconds": round(info.duration, 2),
+        "detected_language": detected_lang,
+        "detected_language_probability": detected_prob,
+        "duration_seconds": duration,
         "processing_ms": processing_ms,
     }
 

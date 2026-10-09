@@ -92,11 +92,14 @@ def transcribe_audio(audio_path: str, language_hint: Optional[str] = None) -> di
 def convert_to_wav(input_path: str, output_path: str) -> str:
     """
     Convert any audio format to 16kHz mono WAV for Whisper.
-    Requires ffmpeg on PATH.
+    Uses imageio-ffmpeg bundled binary.
     """
     import subprocess
+    import imageio_ffmpeg
+    ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+    
     cmd = [
-        "ffmpeg", "-y",
+        ffmpeg_path, "-y",
         "-i", input_path,
         "-ar", "16000",
         "-ac", "1",

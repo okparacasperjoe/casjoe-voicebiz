@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VoiceBiz — Sovereign Multilingual Voice Intelligence Platform",
-  description: "Next-generation multilingual voice-first enterprise intelligence powered by sovereign neural ASR and N-ATLaS foundation models.",
+  title: "VoiceBiz — Voice Assistant for Your Business",
+  description: "Simple voice assistant for business owners. Speak naturally in English, Igbo, Yoruba, or Hausa to track sales, expenses, and debtors.",
 };
 
 export default function RootLayout({

@@ -39,46 +39,46 @@ interface InteractionRecord {
 
 const UI_STRINGS: Record<string, any> = {
   eng: {
-    heroTag: "SOVEREIGN MULTILINGUAL INTELLIGENCE",
+    heroTag: "VOICE ASSISTANT FOR BUSINESS",
     title: "VoiceBiz",
-    subtitle: "Enterprise Voice-First Operating System",
-    statusOnline: "NEURAL CORE ACTIVE",
+    subtitle: "Speak in English, Igbo, Yoruba & Hausa",
+    statusOnline: "VOICE AI READY",
     tapToSpeak: "Tap to Speak",
-    recordingActive: "Listening to voice input...",
-    recordingHint: "Tap red button to finish and analyze",
-    askAbout: "Speak naturally in your native dialect or business language.",
+    recordingActive: "Listening to you... Speak now",
+    recordingHint: "Tap the red button when you are done",
+    askAbout: "Ask about your sales, expenses, debtors, or profits.",
     ex1: "How much did I sell today?",
     ex2: "Who owes me money this week?",
-    ex3: "What is my gross profit margin?",
-    ex4: "Explain working capital and cash flow",
-    summary: "Financial & Operating Radar",
+    ex3: "What is my real profit?",
+    ex4: "Explain cash flow in simple terms",
+    summary: "Business Summary",
     today: "Today",
     week: "This Week",
     month: "This Month",
-    sales: "Gross Revenue",
-    expenses: "Operating Expenses",
-    profit: "Net Gross Profit",
-    topProduct: "Top Performing Asset",
-    askAI: "Deep Financial Audit",
-    receivables: "Receivables & Credit Ledger",
+    sales: "Total Sales",
+    expenses: "Money Spent (Expenses)",
+    profit: "Your Profit (Gain)",
+    topProduct: "Best Selling Item",
+    askAI: "Explain This",
+    receivables: "Customers Who Owe You (Debtors)",
     due: "Due in 2 days",
-    overdue: "Critical • 5 days overdue",
-    settings: "System Configuration",
-    preferences: "Model & Language Preferences",
-    spokenLanguage: "Active Dialect & Speech Model",
-    readAloud: "Neural Audio Synthesis (TTS)",
-    accountPrivacy: "Enterprise Security & Auditing",
-    clearHistory: "Purge Voice Interaction Logs",
-    privacyPolicy: "Sovereign Data Governance Protocol",
-    navSummary: "Intelligence Radar",
-    navVoice: "Voice Engine",
+    overdue: "Overdue by 5 days",
+    settings: "Settings",
+    preferences: "Voice & Language",
+    spokenLanguage: "Language You Speak",
+    readAloud: "Read Answers Out Loud",
+    accountPrivacy: "Privacy & Data",
+    clearHistory: "Clear Voice History",
+    privacyPolicy: "Privacy Policy",
+    navSummary: "Summary",
+    navVoice: "Voice",
     navSettings: "Settings",
-    liveInteraction: "Live Interaction Stream",
-    latency: "Latency",
+    liveInteraction: "Voice Conversations",
+    latency: "Speed",
     confidence: "Confidence",
-    sendPrompt: "Analyze Query",
-    systemPromptTitle: "Ready for Executive Voice Commands",
-    actionFollowUp: "Send Follow-up Note"
+    sendPrompt: "Check This",
+    systemPromptTitle: "Ready for your voice question",
+    actionFollowUp: "Send Reminder"
   },
   ibo: {
     heroTag: "ỌKWA NDỊ ISIOKWU • ASỤSỤ NDỊ NAIJIRIA",
@@ -484,20 +484,20 @@ export default function Home() {
         {/* Status Prompt Line */}
         <div className="text-center mt-6 z-10">
           <p className="text-sm font-medium text-slate-300">
-            {isRecording ? t.recordingActive : loading ? "Synthesizing Multilingual Business Telemetry..." : t.askAbout}
+            {isRecording ? t.recordingActive : loading ? "Checking your business records..." : t.askAbout}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            {isRecording ? t.recordingHint : "Supports Nigerian English, Igbo, Yoruba & Hausa seamlessly"}
+            {isRecording ? t.recordingHint : "Speak freely in English, Igbo, Yoruba, or Hausa"}
           </p>
         </div>
       </div>
 
-      {/* Executive Quick Prompt Pills */}
+      {/* Quick Prompt Pills */}
       <div className="w-full max-w-2xl mt-4 z-10">
         <div className="flex items-center space-x-2 mb-3">
           <Sparkles size={14} className="text-emerald-400" />
           <span className="text-xs uppercase font-mono tracking-wider text-slate-400 font-semibold">
-            One-Click Executive Queries
+            Quick Questions You Can Ask
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -532,7 +532,7 @@ export default function Home() {
             <span>{t.summary}</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Real-time telemetry synchronized with sovereign merchant ledger
+            Live records of your daily sales, expenses and debtors
           </p>
         </div>
         
@@ -676,10 +676,10 @@ export default function Home() {
     <div className="p-4 sm:p-8 max-w-2xl mx-auto space-y-8">
       <div>
         <h2 className="text-xl font-bold tracking-tight text-white">{t.settings}</h2>
-        <p className="text-xs text-slate-400 mt-1">Configure multilingual speech models and enterprise telemetry</p>
+        <p className="text-xs text-slate-400 mt-1">Choose your preferred language and voice options</p>
       </div>
 
-      {/* Model & Language Preferences */}
+      {/* Language Preferences */}
       <div className="space-y-4">
         <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold">{t.preferences}</h3>
         <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl divide-y divide-slate-800/60 overflow-hidden shadow-lg">
@@ -688,7 +688,7 @@ export default function Home() {
               <Globe size={18} className="text-emerald-400" />
               <div>
                 <p className="text-sm font-semibold text-white">{t.spokenLanguage}</p>
-                <p className="text-xs text-slate-400">Dynamic phonetic acoustic tokenizer</p>
+                <p className="text-xs text-slate-400">The language you want to speak with</p>
               </div>
             </div>
             <select
@@ -696,10 +696,10 @@ export default function Home() {
               onChange={(e) => setLanguage(e.target.value)}
               className="bg-slate-800 border border-slate-700 text-white text-xs px-3 py-2 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
-              <option value="eng">Nigerian English (Pidgin / Standard)</option>
-              <option value="ibo">Asụsụ Igbo (Sovereign Dialect)</option>
-              <option value="yor">Èdè Yorùbá (Sovereign Dialect)</option>
-              <option value="hau">Harshen Hausa (Sovereign Dialect)</option>
+              <option value="eng">Nigerian English (Standard / Pidgin)</option>
+              <option value="ibo">Asụsụ Igbo</option>
+              <option value="yor">Èdè Yorùbá</option>
+              <option value="hau">Harshen Hausa</option>
             </select>
           </div>
 
@@ -797,7 +797,7 @@ export default function Home() {
                   <p className="text-xs text-red-400 leading-relaxed font-mono">{item.detail}</p>
                 ) : (
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    {item.response_text || "Analysis complete. Verified with sovereign financial database."}
+                    {item.response_text || "Here is what I found in your business records."}
                   </p>
                 )}
 
@@ -835,12 +835,12 @@ export default function Home() {
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="text-lg font-black tracking-tight text-white">VoiceBiz</h1>
-                <span className="text-[10px] font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full uppercase">
-                  v2.4 Sovereign
+                <span className="text-[10px] font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold px-2.5 py-0.5 rounded-full uppercase">
+                  Smart Voice AI
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium hidden sm:block">
-                Multilingual Voice-First Enterprise Intelligence
+                Easy voice assistant for your daily business
               </p>
             </div>
           </div>
@@ -918,7 +918,7 @@ export default function Home() {
             <div className="px-5 py-3 bg-slate-900/90 border-b border-slate-800 flex justify-between items-center z-20">
               <div>
                 <span className="text-xs font-black text-white">VoiceBiz</span>
-                <span className="text-[10px] text-emerald-400 ml-1.5 font-mono">v2.4</span>
+                <span className="text-[10px] text-emerald-400 ml-1.5 font-mono">Smart Voice</span>
               </div>
               <span className="text-[10px] font-mono text-slate-400 uppercase">{language}</span>
             </div>
@@ -985,7 +985,7 @@ export default function Home() {
 
               <div className="hidden sm:flex items-center space-x-2 text-xs font-mono text-slate-400">
                 <ShieldCheck size={14} className="text-emerald-400" />
-                <span>Sovereign Security Protocol: <strong className="text-slate-200">Active</strong></span>
+                <span>Security & Privacy: <strong className="text-slate-200">Protected</strong></span>
               </div>
             </div>
 
@@ -1006,9 +1006,9 @@ export default function Home() {
         )}
       </div>
 
-      {/* Presidential Footer Status Line */}
+      {/* Footer Status Line */}
       <footer className="border-t border-slate-800/80 bg-[#060a12] py-3 px-6 text-center text-xs text-slate-500 font-mono">
-        VoiceBiz Platform • Designed for Sovereign Multilingual Commercial Empowerment • N-ATLaS Inference v2.4
+        VoiceBiz • Simple voice assistant for Nigerian business owners • Speak in English, Igbo, Yoruba & Hausa
       </footer>
     </main>
   );

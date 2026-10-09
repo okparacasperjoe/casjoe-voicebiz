@@ -209,6 +209,7 @@ const UI_STRINGS: Record<string, any> = {
 };
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'voice' | 'dashboard' | 'settings'>('voice');
   const [viewMode, setViewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [isRecording, setIsRecording] = useState(false);
@@ -219,6 +220,10 @@ export default function Home() {
   const [period, setPeriod] = useState('today');
   const [readAloud, setReadAloud] = useState(true);
   const [activeAudioUrl, setActiveAudioUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const t = UI_STRINGS[language] || UI_STRINGS['eng'];
 

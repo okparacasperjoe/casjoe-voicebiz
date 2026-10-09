@@ -33,7 +33,7 @@ CONTENT = {
             "But you spent N380,000 buying stock and paying rent. "
             "Your profit is N120,000, not N500,000."
         ),
-        "follow_up": "Would you like to see your actual numbers from your Casjoe records?",
+        "follow_up": "Would you like to see your actual numbers from your VoiceBiz records?",
     },
     "FL_CASH_FLOW": {
         "title": "What is Cash Flow?",

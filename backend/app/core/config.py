@@ -9,8 +9,10 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./voicebiz.db"
 
-    # Casjoe Biz
+    # Casjoe Biz / BOS CRM
     CASJOE_API_BASE_URL: str = "https://app.casjoe.com/api/v1"
+    CASJOE_ERP_URL: str = "https://app.casjoe.com/erp"
+    CASJOE_API_KEY: str = "casjoe_live_8e10f0b8775b0617eb7b270544e250cd4553364b868d0e144bb4dc01299b9461"
     CASJOE_JWT_SECRET: str = ""
 
     # N-ATLAS / Ollama

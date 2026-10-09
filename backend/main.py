@@ -8,7 +8,7 @@ import logging
 
 from app.core.config import settings
 from app.core.database import init_db
-from app.api.v1 import health, transcribe, intent, query, financial_literacy, evaluation
+from app.api.v1 import health, transcribe, intent, query, financial_literacy, evaluation, crm
 
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL))
 logger = logging.getLogger(__name__)
@@ -53,3 +53,4 @@ app.include_router(intent.router, prefix="/api/v1", tags=["intent"])
 app.include_router(query.router, prefix="/api/v1", tags=["business-data"])
 app.include_router(financial_literacy.router, prefix="/api/v1", tags=["financial-literacy"])
 app.include_router(evaluation.router, prefix="/api/v1", tags=["evaluation"])
+app.include_router(crm.router, prefix="/api/v1", tags=["crm"])

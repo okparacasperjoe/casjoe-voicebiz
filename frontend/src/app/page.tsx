@@ -3,6 +3,121 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mic, BarChart3, Settings as SettingsIcon, ShieldCheck, ChevronRight, Play } from 'lucide-react';
 
+const UI_STRINGS: Record<string, any> = {
+  eng: {
+    tapToSpeak: "Tap to speak",
+    askAbout: "Ask about your sales, customers, expenses or finances.",
+    ex1: "\"How much did I sell today?\"",
+    ex2: "\"Who owes me money?\"",
+    ex3: "\"What is profit?\"",
+    summary: "Business Summary",
+    today: "Today",
+    week: "This Week",
+    month: "This Month",
+    sales: "Sales",
+    expenses: "Expenses",
+    profit: "Gross Profit",
+    topProduct: "Top Product",
+    askAI: "Ask AI",
+    receivables: "Receivables (Credit)",
+    due: "Due in 2 days",
+    overdue: "Overdue (5 days)",
+    settings: "Settings",
+    preferences: "Preferences",
+    spokenLanguage: "Spoken Language",
+    readAloud: "Read Answers Aloud",
+    accountPrivacy: "Account & Privacy",
+    clearHistory: "Clear Voice History",
+    privacyPolicy: "Privacy Policy",
+    navSummary: "Summary",
+    navVoice: "Voice AI"
+  },
+  ibo: {
+    tapToSpeak: "Pịa ka ị kwuo",
+    askAbout: "Jụọ maka ahịa gị, ndị ahịa, mmefu ma ọ bụ ego gị.",
+    ex1: "\"Ego ole ka m rere taa?\"",
+    ex2: "\"Onye ji m ụgwọ?\"",
+    ex3: "\"Gịnị bụ uru ahịa?\"",
+    summary: "Nchịkọta Azụmahịa",
+    today: "Taa",
+    week: "Izu a",
+    month: "Ọnwa a",
+    sales: "Ahịa",
+    expenses: "Mmefu",
+    profit: "Uru",
+    topProduct: "Ngwaahịa kacha mma",
+    askAI: "Jụọ AI",
+    receivables: "Ụgwọ (Ebe E Si Nnweta)",
+    due: "N'ime ụbọchị abụọ",
+    overdue: "Ego Agafeela (bọchị 5)",
+    settings: "Ntọala",
+    preferences: "Nhọrọ",
+    spokenLanguage: "Asụsụ A Na-asụ",
+    readAloud: "Gụọ azịza n'olu dara ụda",
+    accountPrivacy: "Akaụntụ & Nzuzo",
+    clearHistory: "Kpochapụ Akụkọ Olu",
+    privacyPolicy: "Iwu Nzuzo",
+    navSummary: "Nchịkọta",
+    navVoice: "Olu AI"
+  },
+  yor: {
+    tapToSpeak: "Tẹ lati sọ",
+    askAbout: "Beere nipa awọn tita rẹ, awọn onibara, awọn inawo tabi owo.",
+    ex1: "\"Elo ni mo ta loni?\"",
+    ex2: "\"Tani o jẹ mi ni owo?\"",
+    ex3: "\"Kini ere?\"",
+    summary: "Akopọ Iṣowo",
+    today: "Loni",
+    week: "Ọsẹ yii",
+    month: "Oṣu yii",
+    sales: "Tita",
+    expenses: "Inawo",
+    profit: "Ere Gidi",
+    topProduct: "Ọja Ti O Lọ Julọ",
+    askAI: "Beere AI",
+    receivables: "Owo Ti A Nreti",
+    due: "O to akoko ni ọjọ meji",
+    overdue: "O ti pẹ (ọjọ marun)",
+    settings: "Eto",
+    preferences: "Awọn yiyan",
+    spokenLanguage: "Ede Ti A Nsọ",
+    readAloud: "Ka Awọn Idahun Soke",
+    accountPrivacy: "Iroyin & Asiri",
+    clearHistory: "Pa Itan Ohun rẹ rẹ",
+    privacyPolicy: "Ilana Asiri",
+    navSummary: "Akopọ",
+    navVoice: "Ohun AI"
+  },
+  hau: {
+    tapToSpeak: "Danna don magana",
+    askAbout: "Yi tambaya game da tallace-tallace, abokan ciniki, kashe kudi ko kudi.",
+    ex1: "\"Nawa na sayar a yau?\"",
+    ex2: "\"Wanene yake bina kudi?\"",
+    ex3: "\"Menene riba?\"",
+    summary: "Takaitaccen Kasuwanci",
+    today: "Yau",
+    week: "Wannan Satin",
+    month: "Wannan Watan",
+    sales: "Tallace-tallace",
+    expenses: "Kashe Kudi",
+    profit: "Riba",
+    topProduct: "Babban Samfur",
+    askAI: "Tambayi AI",
+    receivables: "Kudin da za a Karba",
+    due: "Kwana biyu da suka rage",
+    overdue: "Ya wuce lokaci (kwanaki 5)",
+    settings: "Saituna",
+    preferences: "Zaɓuɓɓuka",
+    spokenLanguage: "Yaren Magana",
+    readAloud: "Karanta Amsoshi da Karfi",
+    accountPrivacy: "Asusu & Sirri",
+    clearHistory: "Goge Tarihin Murya",
+    privacyPolicy: "Ka'idojin Sirri",
+    navSummary: "Takaitawa",
+    navVoice: "Muryar AI"
+  }
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState('voice');
   const [isRecording, setIsRecording] = useState(false);
@@ -12,6 +127,8 @@ export default function Home() {
   const [period, setPeriod] = useState('today');
   const [readAloud, setReadAloud] = useState(true);
   const [isListeningForWakeWord, setIsListeningForWakeWord] = useState(false);
+
+  const t = UI_STRINGS[language] || UI_STRINGS['eng'];
 
   const recognitionRef = useRef<any>(null);
 
@@ -109,19 +226,19 @@ export default function Home() {
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {responses.length === 0 ? (
           <div className="text-center mt-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Tap to speak</h2>
-            <p className="text-gray-500 mb-6 text-sm">Ask about your sales, customers, expenses or finances.</p>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">{t.tapToSpeak}</h2>
+            <p className="text-gray-500 mb-6 text-sm">{t.askAbout}</p>
             <div className="space-y-3 text-left">
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl shadow-sm cursor-pointer hover:bg-gray-100 transition flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">"How much did I sell today?"</span>
+                <span className="text-sm font-medium text-gray-700">{t.ex1}</span>
                 <ChevronRight size={16} className="text-gray-400" />
               </div>
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl shadow-sm cursor-pointer hover:bg-gray-100 transition flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">"Who owes me money?"</span>
+                <span className="text-sm font-medium text-gray-700">{t.ex2}</span>
                 <ChevronRight size={16} className="text-gray-400" />
               </div>
               <div className="bg-gray-50 border border-gray-100 p-4 rounded-xl shadow-sm cursor-pointer hover:bg-gray-100 transition flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">"What is profit?"</span>
+                <span className="text-sm font-medium text-gray-700">{t.ex3}</span>
                 <ChevronRight size={16} className="text-gray-400" />
               </div>
             </div>
@@ -185,61 +302,61 @@ export default function Home() {
   const renderDashboardTab = () => (
     <div className="p-4 overflow-y-auto pb-24 h-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-bold text-gray-800">Business Summary</h2>
+        <h2 className="text-lg font-bold text-gray-800">{t.summary}</h2>
         <select 
           className="bg-white border border-gray-200 text-gray-700 text-xs px-2 py-1 rounded shadow-sm outline-none focus:ring-1 focus:ring-green-500"
           value={period}
           onChange={(e) => setPeriod(e.target.value)}
         >
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
+          <option value="today">{t.today}</option>
+          <option value="week">{t.week}</option>
+          <option value="month">{t.month}</option>
         </select>
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Sales</span>
+          <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.sales}</span>
           <p className="text-2xl font-bold text-gray-900 mt-1">₦48,500</p>
           <span className="text-green-600 text-xs font-medium flex items-center mt-2">
              ↑ 12% vs last {period}
           </span>
         </div>
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Expenses</span>
+          <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{t.expenses}</span>
           <p className="text-2xl font-bold text-gray-900 mt-1">₦12,300</p>
           <span className="text-red-500 text-xs font-medium flex items-center mt-2">
              ↑ 5% vs last {period}
           </span>
         </div>
         <div className="col-span-2 bg-gradient-to-r from-green-600 to-green-800 p-5 rounded-xl shadow-md text-white">
-          <span className="text-green-100 text-xs font-semibold uppercase tracking-wider">Gross Profit</span>
+          <span className="text-green-100 text-xs font-semibold uppercase tracking-wider">{t.profit}</span>
           <p className="text-3xl font-bold mt-1">₦36,200</p>
           <div className="mt-4 flex justify-between items-end">
             <div>
-              <p className="text-xs text-green-200 mb-0.5">Top Product</p>
+              <p className="text-xs text-green-200 mb-0.5">{t.topProduct}</p>
               <p className="text-sm font-semibold">Ankara Fabric (6 Yards)</p>
             </div>
             <button className="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm transition">
-              Ask AI
+              {t.askAI}
             </button>
           </div>
         </div>
       </div>
 
-      <h3 className="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider">Receivables (Credit)</h3>
+      <h3 className="text-sm font-bold text-gray-800 mb-3 uppercase tracking-wider">{t.receivables}</h3>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
         <div className="p-4 border-b border-gray-50 flex justify-between items-center">
           <div>
             <p className="font-semibold text-gray-800 text-sm">Amaka Stores</p>
-            <p className="text-xs text-gray-500">Due in 2 days</p>
+            <p className="text-xs text-gray-500">{t.due}</p>
           </div>
           <p className="font-bold text-red-600">₦15,000</p>
         </div>
         <div className="p-4 flex justify-between items-center">
           <div>
             <p className="font-semibold text-gray-800 text-sm">Emeka Logistics</p>
-            <p className="text-xs text-red-400">Overdue (5 days)</p>
+            <p className="text-xs text-red-400">{t.overdue}</p>
           </div>
           <p className="font-bold text-red-600">₦42,000</p>
         </div>
@@ -249,14 +366,14 @@ export default function Home() {
 
   const renderSettingsTab = () => (
     <div className="p-4 h-full bg-gray-50">
-      <h2 className="text-lg font-bold text-gray-800 mb-6">Settings</h2>
+      <h2 className="text-lg font-bold text-gray-800 mb-6">{t.settings}</h2>
       
       <div className="space-y-6">
         <div>
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Preferences</h3>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">{t.preferences}</h3>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-50 flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-800">Spoken Language</span>
+              <span className="text-sm font-medium text-gray-800">{t.spokenLanguage}</span>
               <select 
                 className="bg-gray-50 border border-gray-200 text-gray-700 text-xs px-2 py-1 rounded outline-none focus:ring-1 focus:ring-green-500"
                 value={language}
@@ -269,7 +386,7 @@ export default function Home() {
               </select>
             </div>
             <div className="p-4 flex justify-between items-center">
-              <span className="text-sm font-medium text-gray-800">Read Answers Aloud</span>
+              <span className="text-sm font-medium text-gray-800">{t.readAloud}</span>
               <div onClick={() => setReadAloud(!readAloud)} className={`w-10 h-5 rounded-full relative cursor-pointer transition-colors ${readAloud ? 'bg-green-500' : 'bg-gray-300'}`}>
                 <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-all ${readAloud ? 'right-1' : 'left-1'}`}></div>
               </div>
@@ -278,13 +395,13 @@ export default function Home() {
         </div>
 
         <div>
-          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">Account & Privacy</h3>
+          <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 ml-1">{t.accountPrivacy}</h3>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-50 flex items-center text-red-600 cursor-pointer">
-              <span className="text-sm font-medium">Clear Voice History</span>
+              <span className="text-sm font-medium">{t.clearHistory}</span>
             </div>
             <div className="p-4 flex items-center justify-between cursor-pointer">
-              <span className="text-sm font-medium text-gray-800">Privacy Policy</span>
+              <span className="text-sm font-medium text-gray-800">{t.privacyPolicy}</span>
               <ChevronRight size={16} className="text-gray-400" />
             </div>
           </div>
@@ -328,7 +445,7 @@ export default function Home() {
             className={`flex flex-col items-center space-y-1 transition-colors ${activeTab === 'dashboard' ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <BarChart3 size={22} strokeWidth={activeTab === 'dashboard' ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Summary</span>
+            <span className="text-[10px] font-medium">{t.navSummary}</span>
           </button>
           
           <button 
@@ -336,7 +453,7 @@ export default function Home() {
             className={`flex flex-col items-center space-y-1 transition-colors ${activeTab === 'voice' ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <Mic size={22} strokeWidth={activeTab === 'voice' ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Voice AI</span>
+            <span className="text-[10px] font-medium">{t.navVoice}</span>
           </button>
           
           <button 
@@ -344,11 +461,10 @@ export default function Home() {
             className={`flex flex-col items-center space-y-1 transition-colors ${activeTab === 'settings' ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <SettingsIcon size={22} strokeWidth={activeTab === 'settings' ? 2.5 : 2} />
-            <span className="text-[10px] font-medium">Settings</span>
+            <span className="text-[10px] font-medium">{t.settings}</span>
           </button>
         </nav>
       </div>
     </main>
   );
 }
-

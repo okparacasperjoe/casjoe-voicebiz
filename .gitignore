@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Environment — NEVER commit
+.env
+*.env
+
+# Audio uploads
+backend/uploads/
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+.next/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# NAIC evidence — commit only anonymised versions
+naic-submission/03-VALIDATION/consent-records.pdf
+naic-submission/03-VALIDATION/validation-interactions-raw.csv
